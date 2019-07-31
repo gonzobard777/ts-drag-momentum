@@ -5,7 +5,7 @@ export class AnimationLoop {
 
   constructor() {
     this.add(null);
-    this.animate();
+    this.animate(); // for init requestAnimationFrame loop
   }
 
   animate() {
@@ -30,12 +30,12 @@ export class AnimationLoop {
     this.animations.push(animateFn);
   }
 
-  start() {
-    this.animating = true;
-    this.animate();
-  }
-
-  stop() {
-    this.animating = false;
-  }
+  // start() {
+  //   this.animating = true;
+  //   this.animate();
+  // }
+  //
+  // stop() {
+  //   this.animating = false;
+  // }
 }
