@@ -4,11 +4,9 @@ export class Drag {
   x = 0;
   y = 0;
 
-  decVelX = 0;
-  decVelY = 0;
   friction = 0.95;
-  decelX: number;
-  decelY: number;
+  decelX = 0;
+  decelY = 0;
 
   el: HTMLElement | null = document.getElementById('drag');
 
@@ -32,11 +30,10 @@ export class Drag {
 
   constructor(private loop: AnimationLoop) {
     this.start(undefined);
-    this.el.addEventListener('mousedown', this.start);
-    document.addEventListener('mousemove', this.move);
-    document.addEventListener('mouseup', this.end);
+    this.el.addEventListener('mousedown', this.start.bind(this));
+    document.addEventListener('mousemove', this.move.bind(this));
+    document.addEventListener('mouseup', this.end.bind(this));
     this.end(undefined);
-
   }
 
   changeCurrentPosition(pos: IPosition) {
@@ -44,11 +41,11 @@ export class Drag {
     this.y = pos.y - this.offsetY;
   }
 
-  getPosition(e: TouchEvent| undefined): IPosition {
+  getPosition(e: Event| undefined): IPosition {
     if (e) {
       e.preventDefault();
     }
-    const event: Touch | any = (e ? e.touches ? e.touches[0] : e : {});
+    const event: Touch | any = (e ? (e as TouchEvent).touches ? (e as TouchEvent).touches[0] : e : {});
     const pos = {x: event.pageX, y: event.pageY, time: Date.now()};
 
     this.positions.push(pos);
@@ -58,7 +55,7 @@ export class Drag {
 
   move(e: Event) {
     if (this.dragging) {
-      this.changeCurrentPosition(this.getPosition(e as TouchEvent));
+      this.changeCurrentPosition(this.getPosition(e));
     }
   }
 
@@ -67,7 +64,7 @@ export class Drag {
     this.dragging = true;
     this.decelerating = false;
 
-    const pos = this.getPosition(e as TouchEvent);
+    const pos = this.getPosition(e);
     this.startX = pos.x;
     this.startY = pos.y;
 
@@ -81,14 +78,14 @@ export class Drag {
 
     this.moveTime = this.startTime = Date.now();
 
-    this.loop.add(this.update);
+    this.loop.add(this.update.bind(this));
   }
 
   end(e: Event) {
     if (this.dragging) {
       this.dragging = false;
 
-      const pos = this.getPosition(e as TouchEvent);
+      const pos = this.getPosition(e);
 
       const now = Date.now();
       let lastPos = this.positions.pop();

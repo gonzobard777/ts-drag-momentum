@@ -1,9 +1,11 @@
 export class AnimationLoop {
   animations: Function[] = [];
   animating = true;
-  frame: number | undefined;
+  frame;
 
   constructor() {
+    this.add(null);
+    this.animate();
   }
 
   animate() {
@@ -11,15 +13,17 @@ export class AnimationLoop {
       return;
     }
     if (this.animating) {
-      this.frame = requestAnimationFrame(this.animate);
+      this.frame = requestAnimationFrame(this.animate.bind(this));
     }
     let i = this.animations.length;
     while (i--) {
-      if (!this.animations[i] || this.animations[i]() === false) {
+      if (!this.animations[i]
+        || this.animations[i]() === false
+      ) {
         this.animations.splice(i, 1);
       }
     }
-    this.frame = undefined;
+    this.frame = null;
   }
 
   add(animateFn: Function) {
