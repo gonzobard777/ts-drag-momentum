@@ -156,13 +156,13 @@ export class Drag {
           return false;
         }
       }
-      this.onUpdate(this.x, this.y);
+      this.transfrom(this.x, this.y);
     }
   }
 
-  onUpdate(x: number, y: number) {
+  transfrom(x: number, y: number) {
     this.el.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-    console.log(`shift {x: ${x.toFixed(2)}, y: ${y.toFixed(2)} }`);
+    // console.log(`shift {x: ${x.toFixed(2)}, y: ${y.toFixed(2)} }`);
   }
 }
 

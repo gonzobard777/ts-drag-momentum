@@ -22,10 +22,9 @@ export class AnimationLoop {
       ) {
         this.animations.splice(i, 1);
       }
-      console.log(`animations [${this.animations.length}]`, );
     }
     this.frame = null;
-    // this.animations = [];
+    this.animations = [this.animations[this.animations.length-1]];
   }
 
   add(animateFn: Function) {
