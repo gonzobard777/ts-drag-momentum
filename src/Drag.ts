@@ -1,39 +1,32 @@
 import {AnimationLoop} from "./AnimationLoop";
 
+// 1. get offsetX/offsetY
+// 2. get decelX/decelY
+// 3. perform additional transformation by the value of decelX/decelY,
+//    when decel in cicle decrease: decelX *= friction
+
 export class Drag {
+  el: HTMLElement | null = document.getElementById('drag');
+
   x = 0;
   y = 0;
+  positions: IPosition[] = [];
 
+  startX: number = 0;
+  startY: number = 0;
+  decelerating = false;
+  offsetX: number = 0;
+  offsetY: number = 0;
   friction = 0.9853;
   decelX = 0;
   decelY = 0;
 
-  el: HTMLElement | null = document.getElementById('drag');
-
   dragging = false;
 
-  bounds = {
-    x: document.body.clientWidth,
-    y: document.body.clientHeight
-  };
-
-  positions: IPosition[] = [];
-
-  offsetX: number = 0;
-  offsetY: number = 0;
-  decelerating = false;
-  startX: number = 0;
-  startY: number = 0;
-
-  moveTime: number;
-  startTime: number;
-
   constructor(private loop: AnimationLoop) {
-    // this.start(undefined);
     this.el.addEventListener('mousedown', this.start.bind(this));
     document.addEventListener('mousemove', this.move.bind(this));
     document.addEventListener('mouseup', this.end.bind(this));
-    // this.end(undefined);
   }
 
   getPosition(e: Event | undefined): IPosition {
@@ -67,10 +60,7 @@ export class Drag {
       this.offsetX = this.startX - rect.left;
       this.offsetY = this.startY - rect.top;
     }
-
     this.changeCurrentPosition(pos);
-
-    this.moveTime = this.startTime = Date.now();
 
     this.loop.add(this.update.bind(this));
   }
@@ -95,21 +85,53 @@ export class Drag {
           break;
         }
         lastPos = this.positions[i];
-        // console.log(`lastPos, positions[${i}], ${JSON.stringify(this.positions[i])}`);
       }
-      // console.log(`endPos, ${JSON.stringify(pos)}`);
       const offsetX = pos.x - lastPos.x;
       const offsetY = pos.y - lastPos.y;
 
-      const timeOffset = (Date.now() - lastPos.time);
-      // const time = timeOffset / 5;
-      const time = timeOffset;
+      // OPTION 1
+      // const timeOffset = (Date.now() - lastPos.time);
+      // const time = timeOffset / 12;
+      // const time = timeOffset;
+      // this.decelX = (offsetX / time) || 0;
+      // this.decelY = (offsetY / time) || 0;
 
-      this.decelX = (offsetX / time) || 0;
-      this.decelY = (offsetY / time) || 0;
+      // OPTION 2
+      // const friction = 20;
+      // this.decelX = (offsetX / friction) || 0;
+      // this.decelY = (offsetY / friction) || 0;
+
+      // OPTION 3
+      const decels = Drag.getConstantDecelerating(offsetX, offsetY);
+      this.decelX = decels.decelX;
+      this.decelY = decels.decelY;
 
       this.decelerating = true;
     }
+  }
+
+  static getConstantDecelerating(offsetX: number, offsetY: number) {
+    const decel = 2;
+    let decelX, decelY;
+    const offsetXabs = Math.abs(offsetX);
+    const offsetYabs = Math.abs(offsetY);
+    const offsetXsign = Math.sign(offsetX);
+    const offsetYsign = Math.sign(offsetY);
+
+    if (offsetXabs > offsetYabs) {
+      decelX = decel;
+      decelY = (offsetYabs / offsetXabs) * decel;
+    } else {
+      decelX = (offsetXabs / offsetYabs) * decel;
+      decelY = decel;
+    }
+
+    decelX *= offsetXsign;
+    decelY *= offsetYsign;
+
+    return {
+      decelX, decelY
+    };
   }
 
   update(): void | boolean {
@@ -134,10 +156,6 @@ export class Drag {
           return false;
         }
       }
-
-      // this.x = Math.max(0, Math.min(this.bounds.x, this.x));
-      // this.y = Math.max(0, Math.min(this.bounds.y, this.y));
-
       this.onUpdate(this.x, this.y);
     }
   }

@@ -25,6 +25,7 @@ export class AnimationLoop {
       console.log(`animations [${this.animations.length}]`, );
     }
     this.frame = null;
+    // this.animations = [];
   }
 
   add(animateFn: Function) {
