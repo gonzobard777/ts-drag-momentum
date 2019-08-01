@@ -4,7 +4,7 @@ export class Drag {
   x = 0;
   y = 0;
 
-  friction = 0.95;
+  friction = 0.9853;
   decelX = 0;
   decelY = 0;
 
@@ -29,19 +29,14 @@ export class Drag {
   startTime: number;
 
   constructor(private loop: AnimationLoop) {
-    this.start(undefined);
+    // this.start(undefined);
     this.el.addEventListener('mousedown', this.start.bind(this));
     document.addEventListener('mousemove', this.move.bind(this));
     document.addEventListener('mouseup', this.end.bind(this));
-    this.end(undefined);
+    // this.end(undefined);
   }
 
-  changeCurrentPosition(pos: IPosition) {
-    this.x = pos.x - this.offsetX;
-    this.y = pos.y - this.offsetY;
-  }
-
-  getPosition(e: Event| undefined): IPosition {
+  getPosition(e: Event | undefined): IPosition {
     if (e) {
       e.preventDefault();
     }
@@ -53,10 +48,9 @@ export class Drag {
     return pos;
   }
 
-  move(e: Event) {
-    if (this.dragging) {
-      this.changeCurrentPosition(this.getPosition(e));
-    }
+  changeCurrentPosition(pos: IPosition) {
+    this.x = pos.x - this.offsetX;
+    this.y = pos.y - this.offsetY;
   }
 
   start(e: Event): void {
@@ -81,6 +75,12 @@ export class Drag {
     this.loop.add(this.update.bind(this));
   }
 
+  move(e: Event) {
+    if (this.dragging) {
+      this.changeCurrentPosition(this.getPosition(e));
+    }
+  }
+
   end(e: Event) {
     if (this.dragging) {
       this.dragging = false;
@@ -91,27 +91,32 @@ export class Drag {
       let lastPos = this.positions.pop();
       let i = this.positions.length;
       while (i--) {
-        if (now - this.positions[i].time > 150) {
+        if (now - this.positions[i].time > 50) {
           break;
         }
         lastPos = this.positions[i];
+        // console.log(`lastPos, positions[${i}], ${JSON.stringify(this.positions[i])}`);
       }
+      // console.log(`endPos, ${JSON.stringify(pos)}`);
+      const offsetX = pos.x - lastPos.x;
+      const offsetY = pos.y - lastPos.y;
 
-      const xOffset = pos.x - lastPos.x;
-      const yOffset = pos.y - lastPos.y;
+      const timeOffset = (Date.now() - lastPos.time);
+      // const time = timeOffset / 5;
+      const time = timeOffset;
 
-      var timeOffset = (Date.now() - lastPos.time) / 12;
+      this.decelX = (offsetX / time) || 0;
+      this.decelY = (offsetY / time) || 0;
 
-      this.decelX = (xOffset / timeOffset) || 0;
-      this.decelY = (yOffset / timeOffset) || 0;
       this.decelerating = true;
     }
   }
 
   update(): void | boolean {
     if (this.el) {
-
       if (this.decelerating) {
+
+        // decelX/Y decrease on each call of update()
         this.decelX *= this.friction;
         this.decelY *= this.friction;
 
@@ -130,15 +135,16 @@ export class Drag {
         }
       }
 
-      this.x = Math.max(0, Math.min(this.bounds.x, this.x));
-      this.y = Math.max(0, Math.min(this.bounds.y, this.y));
+      // this.x = Math.max(0, Math.min(this.bounds.x, this.x));
+      // this.y = Math.max(0, Math.min(this.bounds.y, this.y));
 
       this.onUpdate(this.x, this.y);
     }
   }
 
-  onUpdate(x, y) {
+  onUpdate(x: number, y: number) {
     this.el.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+    console.log(`shift {x: ${x.toFixed(2)}, y: ${y.toFixed(2)} }`);
   }
 }
 
